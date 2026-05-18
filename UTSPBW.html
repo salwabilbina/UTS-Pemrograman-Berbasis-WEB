@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Data Mahasiswa - Sistem Manajemen Mahasiswa</title>
+    <style>
+        /* --- CSS STYLING --- */
+        :root {
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --primary: #000000;
+            --accent: #2980b9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+
+        nav {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
+            padding: 25px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h3 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+
+        /* Form Styling */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            box-sizing: border-box;
+        }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        #submitBtn { background-color: var(--success); color: white; flex: 2; }
+        #cancelBtn { background-color: #95a5a6; color: white; flex: 1; }
+
+        /* Table Styling */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: var(--accent); color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        .btn-edit { background: var(--warning); color: white; }
+        .btn-delete { background: var(--danger); color: white; }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .page-btn {
+            background: #ddd;
+            color: #333;
+            padding: 5px 12px;
+        }
+        .page-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Utility */
+        #themeToggle { background: var(--accent); color: white; }
+        .export-btn { background: #8e44ad; color: white; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div style="font-size: 1.5rem; font-weight: bold;">Form Data Mahasiswa</div>
+        <button id="themeToggle">🌓 Ganti Mode</button>
+    </nav>
+
+    <div class="container">
+        <!-- FORM INPUT -->
+        <section class="card">
+            <h3>Input Data Mahasiswa</h3>
+            <form id="mhsForm">
+                <input type="hidden" id="editIndex" value="">
+                
+                <div class="form-group">
+                    <label for="nim">NIM</label>
+                    <input type="text" id="nim" placeholder="Contoh: 15000123" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nama">Nama Lengkap</label>
+                    <input type="text" id="nama" placeholder="Masukkan nama..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="alamat">Alamat</label>
+                    <textarea id="alamat" rows="3" placeholder="Alamat lengkap..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="jk">Jenis Kelamin</label>
+                    <select id="jk" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Min. 6 karakter" required>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" id="submitBtn">Simpan Data</button>
+                    <button type="button" id="cancelBtn" style="display: none;">Batal</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- TABLE DATA -->
+        <section class="card">
+            <div class="action-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Cari Berdasarkan NIM atau Nama..." style="max-width: 300px;">
+                <button class="export-btn" onclick="exportToPDF()">📑 Cetak PDF</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>NIM</th>
+                            <th>Nama</th>
+                            <th>L/P</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mhsBody">
+                        <!-- Data akan muncul di sini -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <!-- Tombol halaman muncul di sini -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /* --- JAVASCRIPT LOGIC --- */
+        let students = JSON.parse(localStorage.getItem('studentData')) || [];
+        let currentPage = 1;
+        const rowsPerPage = 5;
+
+        const mhsForm = document.getElementById('mhsForm');
+        const mhsBody = document.getElementById('mhsBody');
+        const searchInput = document.getElementById('searchInput');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // 1. Simpan & Update Data
+        mhsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const index = document.getElementById('editIndex').value;
+            const newData = {
+                nim: document.getElementById('nim').value,
+                nama: document.getElementById('nama').value,
+                alamat: document.getElementById('alamat').value,
+                jk: document.getElementById('jk').value,
+                pass: document.getElementById('password').value
+            };
+
+            if (index === "") {
+                // Cek NIM duplikat
+                if(students.some(s => s.nim === newData.nim)) {
+                    alert("NIM sudah terdaftar!");
+                    return;
+                }
+                students.push(newData);
+            } else {
+                students[index] = newData;
+                resetForm();
+            }
+
+            refreshData();
+        });
+
+        // 2. Tampilkan Data (Read)
+        function renderTable() {
+            mhsBody.innerHTML = "";
+            const term = searchInput.value.toLowerCase();
+            
+            // Filter Search
+            const filtered = students.filter(s => 
+                s.nim.toLowerCase().includes(term) || 
+                s.nama.toLowerCase().includes(term)
+            );
+
+            // Pagination
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const displayedData = filtered.slice(start, end);
+
+            if(displayedData.length === 0) {
+                mhsBody.innerHTML = `<tr><td colspan="5" style="text-align:center">Data tidak ditemukan.</td></tr>`;
+            }
+
+            displayedData.forEach((item, idx) => {
+                // Cari index asli di array 'students' agar saat edit/hapus tidak salah
+                const originalIndex = students.indexOf(item);
+                
+                const row = `
+                    <tr>
+                        <td>${start + idx + 1}</td>
+                        <td>${item.nim}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.jk === 'Laki-laki' ? 'L' : 'P'}</td>
+                        <td>
+                            <button class="btn-edit" onclick="prepareEdit(${originalIndex})">Edit</button>
+                            <button class="btn-delete" onclick="deleteStudent(${originalIndex})">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+                mhsBody.innerHTML += row;
+            });
+
+            renderPagination(filtered.length);
+        }
+
+        // 3. Hapus Data
+        function deleteStudent(index) {
+            if(confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+                students.splice(index, 1);
+                refreshData();
+            }
+        }
+
+        // 4. Edit Data (Load ke form)
+        function prepareEdit(index) {
+            const s = students[index];
+            document.getElementById('editIndex').value = index;
+            document.getElementById('nim').value = s.nim;
+            document.getElementById('nama').value = s.nama;
+            document.getElementById('alamat').value = s.alamat;
+            document.getElementById('jk').value = s.jk;
+            document.getElementById('password').value = s.pass;
+            
+            document.getElementById('submitBtn').innerText = "Update Data";
+            document.getElementById('submitBtn').style.backgroundColor = "var(--warning)";
+            cancelBtn.style.display = "inline";
+            window.scrollTo(0, 0);
+        }
+
+        // Fitur Tambahan 1: Dark Mode
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const body = document.documentElement;
+            if(body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+            }
+        });
+
+        // Fitur Tambahan 2: Export PDF (Simple Print View)
+        function exportToPDF() {
+            window.print();
+        }
+
+        // Utils
+        function refreshData() {
+            localStorage.setItem('studentData', JSON.stringify(students));
+            renderTable();
+            if(document.getElementById('editIndex').value === "") mhsForm.reset();
+        }
+
+        function resetForm() {
+            document.getElementById('editIndex').value = "";
+            document.getElementById('submitBtn').innerText = "Simpan Data";
+            document.getElementById('submitBtn').style.backgroundColor = "var(--success)";
+            cancelBtn.style.display = "none";
+            mhsForm.reset();
+        }
+
+        cancelBtn.onclick = resetForm;
+
+        function renderPagination(total) {
+            const pageCount = Math.ceil(total / rowsPerPage);
+            const paginContainer = document.getElementById('pagination');
+            paginContainer.innerHTML = "";
+            
+            for(let i = 1; i <= pageCount; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                paginContainer.appendChild(btn);
+            }
+        }
+
+        searchInput.oninput = () => { currentPage = 1; renderTable(); };
+
+        // Start App
+        renderTable();
+    </script>
+</body>
+</html>
